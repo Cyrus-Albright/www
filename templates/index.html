@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>DOWNLOAD SERVICE</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <style type="text/css">
+        /* css here */
+    </style>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(() => {
+            getfilelist()
+        })
+    </script>
+    <script type="text/javascript">
+        function clouddownload() {
+            //var url = $("#urlbox").val();
+            var data = $("#urlform").serialize();
+            //console.log("开始下载");
+            $("#status").text("下载中...")
+            $.ajax({
+                type: "post",
+                url: "clouddownload",
+                data: data,
+                success: (resp) => {
+                    console.log(resp);
+                    $("#status").text("下载完成");
+                    getfilelist()
+                }
+            });
+        };
+
+
+        function getfilelist() {
+            console.log("function getfilelist");
+            $.ajax({
+                type: "get",
+                url: "listfile",
+                success: (resp) => {
+                    $("#filelist").empty();
+                    // # TODO: 添加文件lastmodifieddate, 文件大小size
+                    // var fileinfolist = resp;
+                    // filename = resp[0].filename
+                    // lastmodifieddate = resp[0].lastmodifieddate
+                    // size = resp[0].size
+                    var filelist = resp;
+                    console.log(filelist);
+                    for (i = 0; i < filelist.length; i++) {
+                        // 添加文件列表li节点
+                        var li = $("<li></li>");
+                        var filenamespan = $("<span id='filenamespan'></span>");
+                        filenamespan.text(filelist[i]);
+                        var filestatespan = $("<span id='filestatespan'></span>");
+                        filestatespan.text("");
+                        var dlbtn = $("<input type='button' value='下载' onclick='filedownload(this)'>");
+                        var deletebtn = $("<input type='button' value='删除' onclick='deletefile(this)'>");
+                        li.append(filenamespan);
+                        li.append(filestatespan);
+                        li.append(dlbtn);
+                        li.append(deletebtn);
+                        $("#filelist").append(li)
+                    }
+                }
+            })
+        };
+
+        function filedownload(e) {
+            var filename = $(e).parent().children("span").text();
+            console.log("download file: " + filename);
+            $("#status").text("开始下载" + filename);
+            // $.ajax({
+            //     type: "get",
+            //     url: "download",
+            //     // data: new FormData().append("filename", filename),
+            //     data: "filename=" + filename,
+            //     success: (resp)=>{
+            //         console.log("return ok")
+            //     }
+            // })
+            window.location.href = "download?filename=" + filename;
+        };
+
+        function deletefile(e) {
+            var filename = $(e).parent().children("span").text();
+            console.log("delete file: " + filename);
+            $("#status").text("删除文件" + filename);
+            $.ajax({
+                type: "post",
+                url: "deletefile",
+                // 以json格式传入data；dataType参数标识返回response数据格式
+                dataType: "json",
+                data: { "filename": filename },
+                success: (resp) => {
+                    console.log(resp.filename + "删除完成");
+                    $("#status").text(resp.filename + "删除完成");
+                    getfilelist()
+                },
+                error: (XMLHttpRequest, textStatus, errorThrown) => {
+                    console.log(textStatus);
+                    $("#status").text(errorThrown);
+                }
+            })
+        }
+
+    </script>
+</head>
+
+<body>
+    <h1>云端文件管理</h1>
+    <hr>
+    <div class="urlcontent">
+        <form action="#" onsubmit="return false" id="urlform">
+            <p>云下载：<input type="text" name="url" id="urlbox" placeholder="请输入下载链接">
+                <input type="button" value="下载" onclick="clouddownload()">
+            </p>
+        </form>
+    </div>
+    <hr>
+    <div>状态：<span id="status">...</span></div>
+    <hr>
+    <div class="filelist">
+        <p>
+            <span>文件列表：<span>
+                    <input type="button" value="刷新" onclick="getfilelist()">
+        </p>
+        <ol class="list" id="filelist">
+            <!-- <! filelsit here> -->
+        </ol>
+    </div>
+</body>
+
+</html>
