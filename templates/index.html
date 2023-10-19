@@ -5,16 +5,22 @@
     <title>DOWNLOAD SERVICE</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.1/js/bootstrap.min.js"></script>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 自定义CSS -->
     <style type="text/css">
         /* css here */
     </style>
-    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <!-- 自定义JavaScript -->
     <script type="text/javascript">
+        // 网页加载完成后自动获取文件列表
         $(document).ready(() => {
             getfilelist()
         })
     </script>
     <script type="text/javascript">
+        // 云端下载功能
         function clouddownload() {
             //var url = $("#urlbox").val();
             var data = $("#urlform").serialize();
@@ -27,49 +33,55 @@
                 success: (resp) => {
                     console.log(resp);
                     $("#status").text("下载完成");
-                    getfilelist()
+                    getfilelist();
+                    trig_toast("云端下载完成");
                 }
             });
         };
 
-
+        // 获取云端文件列表
         function getfilelist() {
             console.log("function getfilelist");
             $.ajax({
+                // dataType: "text/json",
                 type: "get",
                 url: "listfile",
                 success: (resp) => {
                     $("#filelist").empty();
-                    // # TODO: 添加文件lastmodifieddate, 文件大小size
-                    // var fileinfolist = resp;
-                    // filename = resp[0].filename
-                    // lastmodifieddate = resp[0].lastmodifieddate
-                    // size = resp[0].size
-                    var filelist = resp;
-                    console.log(filelist);
-                    for (i = 0; i < filelist.length; i++) {
+                    // 添加文件最近修改日期lastmodified, 文件大小size
+                    var fileinfolist = resp.fileinfolist;
+                    console.log("Response:" + resp);
+                    for (i = 0; i < fileinfolist.length; i++) {
                         // 添加文件列表li节点
-                        var li = $("<li></li>");
-                        var filenamespan = $("<span id='filenamespan'></span>");
-                        filenamespan.text(filelist[i]);
-                        var filestatespan = $("<span id='filestatespan'></span>");
-                        filestatespan.text("");
-                        var dlbtn = $("<input type='button' value='下载' onclick='filedownload(this)'>");
-                        var deletebtn = $("<input type='button' value='删除' onclick='deletefile(this)'>");
-                        li.append(filenamespan);
-                        li.append(filestatespan);
-                        li.append(dlbtn);
-                        li.append(deletebtn);
-                        $("#filelist").append(li)
+                        var list_item_div = $('<div class="list-group-item d-flex justify-content-between align-items-center"></div>');
+                        var filename_div = $('<div class="text-wrap m-1 flex-grow-1" id="filename"></div>');
+                        filename_div.text(fileinfolist[i].filename);
+                        var filestat_div = $('<small class="text-muted text-nowrap m-2" id="filestat"></small>');
+                        filestat_div.text(fileinfolist[i].size + "  " + fileinfolist[i].lastmodified);
+                        var operate_btn_group = $('<div class="btn-group text-nowrap m-1"> \
+                            <button type="button" class="p-2 btn btn-secondary" onclick="filedownload(this)">下载</button> \
+                            <button type="button" class="p-2 btn btn-danger" onclick="deletefile(this)">删除</button> \
+                            </div>');
+                        list_item_div.append(filename_div);
+                        list_item_div.append(filestat_div);
+                        list_item_div.append(operate_btn_group);
+                        $("#filelist").append(list_item_div)
                     }
+                },
+                error: (jqXHR, textStatus, errorThrown) => {
+                    console.log(textStatus);
+                    console.log(errorThrown);
                 }
-            })
+            });
+            // trig_toast("文件列表已更新");
         };
 
+        // 下载云端列表文件
         function filedownload(e) {
-            var filename = $(e).parent().children("span").text();
+            var filename = $(e).parent().siblings().filter("#filename").text();
             console.log("download file: " + filename);
             $("#status").text("开始下载" + filename);
+            trig_toast("开始下载" + filename);
             // $.ajax({
             //     type: "get",
             //     url: "download",
@@ -82,10 +94,12 @@
             window.location.href = "download?filename=" + filename;
         };
 
+        // 删除云端列表文件
         function deletefile(e) {
-            var filename = $(e).parent().children("span").text();
+            var filename = $(e).parent().siblings().filter("#filename").text();
             console.log("delete file: " + filename);
             $("#status").text("删除文件" + filename);
+            trig_toast("删除文件" + filename);
             $.ajax({
                 type: "post",
                 url: "deletefile",
@@ -95,40 +109,76 @@
                 success: (resp) => {
                     console.log(resp.filename + "删除完成");
                     $("#status").text(resp.filename + "删除完成");
-                    getfilelist()
+                    trig_toast(resp.filename + "删除完成");
+                    getfilelist();
                 },
                 error: (XMLHttpRequest, textStatus, errorThrown) => {
                     console.log(textStatus);
                     $("#status").text(errorThrown);
                 }
             })
+        };
+
+        // Toast Trigger
+        function trig_toast(message) {
+            var toastLive = $("#liveToast");
+            toastLive.children().children().filter(".toast-body").text(message);
+            const toast = new bootstrap.Toast(toastLive);
+            toast.show()
         }
 
     </script>
 </head>
 
 <body>
-    <h1>云端文件管理</h1>
+    <h1 class="m-2">云端文件管理</h1>
     <hr>
-    <div class="urlcontent">
-        <form action="#" onsubmit="return false" id="urlform">
-            <p>云下载：<input type="text" name="url" id="urlbox" placeholder="请输入下载链接">
-                <input type="button" value="下载" onclick="clouddownload()">
-            </p>
+    <div class="urlcontent m-2">
+        <form class="row align-items-center" action="#" onsubmit="return false" id="urlform">
+            <label class="col-auto">云下载：</label>
+            <input class="col-auto m-2 p-1" type="text" name="url" id="urlbox" placeholder="请输入下载链接">
+            <button type="button" class="btn btn-secondary col-auto m-2" onclick="clouddownload()">下载</button>
         </form>
     </div>
-    <hr>
-    <div>状态：<span id="status">...</span></div>
-    <hr>
-    <div class="filelist">
+
+    <div class="filelist m-2">
         <p>
-            <span>文件列表：<span>
-                    <input type="button" value="刷新" onclick="getfilelist()">
+            <span>文件列表：</span>
+            <butoon type="button" class="btn btn-secondary" onclick="getfilelist()">刷新</butoon>
         </p>
-        <ol class="list" id="filelist">
-            <!-- <! filelsit here> -->
-        </ol>
+        <div class="list-group list-group-numbered" id="filelist">
+            <!-- 新云端列表 -->
+        </div>
+        <!-- Test Area Begin -->
+        <div class="list-group list-group-numbered invisible">
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="text-wrap m-1 flex-grow-1">Flex FileName</div>
+                <small class="text-muted text-nowrap m-2">209MB 2023-8-21 19:20</small>
+                <div class="btn-group text-nowrap m-1">
+                    <button type="button" class="p-2 btn btn-outline-secondary">下载</button>
+                    <button type="button" class="p-2 btn btn-outline-danger">删除</button>
+                </div>
+            </div>
+            <button onclick="trig_toast('hello trigger toast')">Test Toast</button>
+        </div>
+        <!-- Test Area End -->
     </div>
+
+    <!-- Deprecated! 原显示状态，现使用Toast代替 -->
+    <div class="invisible">状态：<span id="status">...</span></div>
+    <!-- Toast Start -->
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div class="toast align-items-center text-bg-primary" id="liveToast" role="alert" aria-live="assertive"
+            aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    Hello, world! This is a toast message.
+                </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+    <!-- Toast End -->
 </body>
 
 </html>

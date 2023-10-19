@@ -6,6 +6,8 @@ import requests
 import os
 import json
 from time import time
+from tools.tools import struct_time, get_readable_file_size
+
 
 app = Flask(__name__)
 
@@ -49,13 +51,17 @@ def clouddownload():
 def listfile():
     filelist = os.listdir(filedir)
     # TODO: 添加文件lastmodifieddate, 文件大小size
-    # fileinfolist = []
-    # for filename in filelist:
-    # filestate = {"filename":filename, "lastmodifieddate":lastmodifieddate, "size":size}
-    # fileinfolist.append(filestate)
-    # response = make_response(json.dumps(fileinfolist))
-    response = make_response(json.dumps(filelist))
-    response.headers["Content-type"] = "text/json"
+    fileinfolist = []
+    for filename in filelist:
+        filestat = os.stat(os.path.join(filedir, filename))
+        filesize = get_readable_file_size(filestat.st_size)
+        filectime = struct_time(filestat.st_ctime)
+        fileinfo = {"filename": filename,
+                    "lastmodified": filectime, "size": filesize}
+        fileinfolist.append(fileinfo)
+
+    response = make_response(json.dumps({"fileinfolist": fileinfolist}))
+    response.headers["Content-Type"] = "text/json"
     return response
 
 
