@@ -5,6 +5,7 @@
     <title>DOWNLOAD SERVICE</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
     <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.1/js/bootstrap.min.js"></script>
     <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.1/css/bootstrap.min.css" rel="stylesheet">
@@ -133,7 +134,7 @@
 <body>
     <h1 class="m-2">云端文件管理</h1>
     <hr>
-    <div class="urlcontent m-2">
+    <div class="m-2" id="urlcontainer">
         <form class="row align-items-center" action="#" onsubmit="return false" id="urlform">
             <label class="col-auto">云下载：</label>
             <input class="col-auto m-2 p-1" type="text" name="url" id="urlbox" placeholder="请输入下载链接">
@@ -141,7 +142,7 @@
         </form>
     </div>
 
-    <div class="filelist m-2">
+    <div class="filelist m-2" id="filelist-container">
         <p>
             <span>文件列表：</span>
             <butoon type="button" class="btn btn-secondary" onclick="getfilelist()">刷新</butoon>
@@ -150,7 +151,7 @@
             <!-- 新云端列表 -->
         </div>
         <!-- Test Area Begin -->
-        <div class="list-group list-group-numbered invisible">
+        <div class="list-group list-group-numbered visible">
             <div class="list-group-item d-flex justify-content-between align-items-center">
                 <div class="text-wrap m-1 flex-grow-1">Flex FileName</div>
                 <small class="text-muted text-nowrap m-2">209MB 2023-8-21 19:20</small>
@@ -159,13 +160,24 @@
                     <button type="button" class="p-2 btn btn-outline-danger">删除</button>
                 </div>
             </div>
-            <button onclick="trig_toast('hello trigger toast')">Test Toast</button>
+            <div class="list-group-item d-flex justify-content-between gap-2">
+                <div class="flex-grow-1 w-100">
+                    <div class="text-nowrap">Flex FileName which has Superlong name...............................txt
+                    </div>
+                    <small class="text-muted text-nowrap">20MB 2023-8-21 19:20</small>
+                </div>
+                <div class="btn-group text-nowrap">
+                    <button type="button" class="btn btn-outline-secondary">下载</button>
+                    <button type="button" class="btn btn-outline-danger">删除</button>
+                </div>
+            </div>
         </div>
+        <button onclick="trig_toast('hello trigger toast')">Test Toast</button>
         <!-- Test Area End -->
     </div>
 
     <!-- Deprecated! 原显示状态，现使用Toast代替 -->
-    <div class="invisible">状态：<span id="status">...</span></div>
+    <div class="invisible" id="status-container">状态：<span id="status">...</span></div>
     <!-- Toast Start -->
     <div class="toast-container position-fixed top-0 end-0 p-3">
         <div class="toast align-items-center text-bg-primary" id="liveToast" role="alert" aria-live="assertive"
