@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>DOWNLOAD SERVICE</title>
+    <title>文件中转站</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
@@ -12,6 +12,9 @@
     <!-- 自定义CSS -->
     <style type="text/css">
         /* css here */
+        #filelist-table {
+            width: 80%
+        }
     </style>
     <!-- 自定义JavaScript -->
     <script type="text/javascript">
@@ -26,7 +29,8 @@
             //var url = $("#urlbox").val();
             var data = $("#urlform").serialize();
             //console.log("开始下载");
-            $("#status").text("下载中...")
+            $("#status").text("下载中...");
+            trig_toast("云端开始下载");
             $.ajax({
                 type: "post",
                 url: "clouddownload",
@@ -48,25 +52,21 @@
                 type: "get",
                 url: "listfile",
                 success: (resp) => {
-                    $("#filelist").empty();
+                    $("#filelist_tbody").empty();
                     // 添加文件最近修改日期lastmodified, 文件大小size
                     var fileinfolist = resp.fileinfolist;
-                    console.log("Response:" + resp);
+                    console.log("Response:" + resp.fileinfolist);
                     for (i = 0; i < fileinfolist.length; i++) {
-                        // 添加文件列表li节点
-                        var list_item_div = $('<div class="list-group-item d-flex justify-content-between align-items-center"></div>');
-                        var filename_div = $('<div class="text-wrap m-1 flex-grow-1" id="filename"></div>');
-                        filename_div.text(fileinfolist[i].filename);
-                        var filestat_div = $('<small class="text-muted text-nowrap m-2" id="filestat"></small>');
-                        filestat_div.text(fileinfolist[i].size + "  " + fileinfolist[i].lastmodified);
-                        var operate_btn_group = $('<div class="btn-group text-nowrap m-1"> \
-                            <button type="button" class="p-2 btn btn-secondary" onclick="filedownload(this)">下载</button> \
-                            <button type="button" class="p-2 btn btn-danger" onclick="deletefile(this)">删除</button> \
-                            </div>');
-                        list_item_div.append(filename_div);
-                        list_item_div.append(filestat_div);
-                        list_item_div.append(operate_btn_group);
-                        $("#filelist").append(list_item_div)
+                        var list_item_tr = $('<tr><td><div class= "btn-group text-nowrap" >\
+                                <button type="button" class="btn btn-outline-secondary">下载</button>\
+                                <button type="button" class="btn btn-outline-danger">删除</button></div></td></tr>');
+                        var filename_td = $('<td>' + fileinfolist[i].filename + '</td>');
+                        var lastmodified_td = $('<td><small class="text-muted">' + fileinfolist[i].lastmodified + '</td>');
+                        var size_td = $('<td><small class="text-muted">' + fileinfolist[i].size + '</td>');
+                        list_item_tr.prepend(size_td);
+                        list_item_tr.prepend(lastmodified_td);
+                        list_item_tr.prepend(filename_td);
+                        $("#filelist_tbody").append(list_item_tr)
                     }
                 },
                 error: (jqXHR, textStatus, errorThrown) => {
@@ -132,7 +132,7 @@
 </head>
 
 <body>
-    <h1 class="m-2">云端文件管理</h1>
+    <h1 class="m-2">文件中转站</h1>
     <hr>
     <div class="m-2" id="urlcontainer">
         <form class="row align-items-center" action="#" onsubmit="return false" id="urlform">
@@ -142,37 +142,41 @@
         </form>
     </div>
 
-    <div class="filelist m-2" id="filelist-container">
-        <p>
-            <span>文件列表：</span>
-            <butoon type="button" class="btn btn-secondary" onclick="getfilelist()">刷新</butoon>
-        </p>
-        <div class="list-group list-group-numbered" id="filelist">
+    <div class="" id="filelist-container">
+        <table class="table">
+            <tr>
+                <td>
+                    <span>文件列表：</span>
+                    <button type="button" class="btn btn-secondary" id="refresh_btn" onclick="getfilelist()">刷新</button>
+                </td>
+                <td>
+                    <!-- TODO:文件上传功能：需要在form表单中制定mime/formdata类型，看如何写html内容 -->
+                    <form action="/uploadfile" method="post">
+                        {{ fileuploadform.submmit(class="btn btn-outline-secondary") }}
+                        {{ fileuploadform.file(class="") }}
+                    </form>
+                </td>
+            </tr>
+        </table>
+        <div class="table-container m-2" id="filelist">
             <!-- 新云端列表 -->
+            <table class="table-sm" id="filelist-table">
+                <thead>
+                    <tr>
+                        <th>文件名</th>
+                        <th>修改时间</th>
+                        <th>大小</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody class="table-group-divider align-middle" id="filelist_tbody">
+                    <!-- Ajax获取 -->
+                </tbody>
+            </table>
         </div>
         <!-- Test Area Begin -->
-        <div class="list-group list-group-numbered visible">
-            <div class="list-group-item d-flex justify-content-between align-items-center">
-                <div class="text-wrap m-1 flex-grow-1">Flex FileName</div>
-                <small class="text-muted text-nowrap m-2">209MB 2023-8-21 19:20</small>
-                <div class="btn-group text-nowrap m-1">
-                    <button type="button" class="p-2 btn btn-outline-secondary">下载</button>
-                    <button type="button" class="p-2 btn btn-outline-danger">删除</button>
-                </div>
-            </div>
-            <div class="list-group-item d-flex justify-content-between gap-2">
-                <div class="flex-grow-1 w-100">
-                    <div class="text-nowrap">Flex FileName which has Superlong name...............................txt
-                    </div>
-                    <small class="text-muted text-nowrap">20MB 2023-8-21 19:20</small>
-                </div>
-                <div class="btn-group text-nowrap">
-                    <button type="button" class="btn btn-outline-secondary">下载</button>
-                    <button type="button" class="btn btn-outline-danger">删除</button>
-                </div>
-            </div>
+        <div class="invisible" id="testarea">
         </div>
-        <button onclick="trig_toast('hello trigger toast')">Test Toast</button>
         <!-- Test Area End -->
     </div>
 
