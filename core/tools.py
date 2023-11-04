@@ -1,6 +1,8 @@
 from random import randint
 from time import strftime, localtime
 import os
+import subprocess
+from flask import current_app
 
 
 # 随机生成长度为randomlength的字符串
@@ -33,16 +35,21 @@ def struct_time(timestr, formatstr="%Y-%m-%d %H:%M"):
     return strftime(formatstr, localtime(timestr))
 
 
-# 查询剩余空间，查询downloadfile文件夹大小
+# 查询占用空间，查询文件夹大小
 def diskspaceusage(dir):
-    if not os.path.isdir(dir):
+    if not os.path.exists(dir) or not os.path.isdir(dir):
         return "Not Avaliable Directory"
-    return os.path.getsize(dir)
+    # 使用系统du命令获取文件夹大小
+    dir_size_info = subprocess.check_output(["du", "-sh", dir]).decode("utf-8")
+    dir_size = dir_size_info.split("\t")[0]
+    return dir_size
 
 
-def downloadfile_dir_usage():
-    return os.path.getsize("/home/cyrus/project/www/downloadfile")
-
-
-def user_dir_usage():
-    return os.path.getsize("/home/cyrus")
+def get_systeminfo():
+    uname = os.uname() #[sysname, nodename, release, version, machine]
+    workdir = os.getcwd()
+    workdir_usage = diskspaceusage(workdir)
+    filecachedir = current_app.config.get("FILECACHEDIR")
+    filecachedir_usage = diskspaceusage(filecachedir)
+    return {"uname": uname, "workdir": workdir, "workdir_usage": workdir_usage,
+        "filecachedir": filecachedir, "filecachedir_usage": filecachedir_usage}

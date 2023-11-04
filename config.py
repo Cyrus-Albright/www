@@ -2,9 +2,10 @@ import os
 
 
 class Config:
-    DEBUG = False
     SECRET_KEY = "F0RM$YoWnAP@P=run1N[pyTH0n^N1whERE]*just4FUN"
-    FILECACHEDIR = os.getenv("FILECACHEDIR") or "filecachedir"
+    # 文件存储目录，从系统环境变量中获取不到就设置为项目同级目录下的"FILECACHEDIR"文件夹
+    FILECACHEDIR = os.getenv("FILECACHEDIR") or \
+        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "FILECACHEDIR")
     UPLOAD_FOLDER = FILECACHEDIR
     # 设置最大允许上传文件大小100MB，可在应用初始化时动态调整
     MAX_CONTENT_LENGTH = 100 * 1024 * 1024
@@ -21,7 +22,6 @@ class DevelopmentConfig(Config):
 
 
 class TestingConfig(Config):
-    DEBUG = True
     TESTING = True
 
 

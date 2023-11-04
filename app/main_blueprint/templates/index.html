@@ -58,9 +58,9 @@
                     console.log("Response:" + resp.fileinfolist);
                     for (i = 0; i < fileinfolist.length; i++) {
                         var list_item_tr = $('<tr><td><div class= "btn-group text-nowrap" >\
-                                <button type="button" class="btn btn-outline-secondary">下载</button>\
-                                <button type="button" class="btn btn-outline-danger">删除</button></div></td></tr>');
-                        var filename_td = $('<td>' + fileinfolist[i].filename + '</td>');
+                                <button type="button" class="btn btn-outline-secondary" onclick="downloadfile(this)">下载</button>\
+                                <button type="button" class="btn btn-outline-danger" onclick="deletefile(this)">删除</button></div></td></tr>');
+                        var filename_td = $('<td id="filename">' + fileinfolist[i].filename + '</td>');
                         var lastmodified_td = $('<td><small class="text-muted">' + fileinfolist[i].lastmodified + '</td>');
                         var size_td = $('<td><small class="text-muted">' + fileinfolist[i].size + '</td>');
                         list_item_tr.prepend(size_td);
@@ -78,8 +78,8 @@
         };
 
         // 下载云端列表文件
-        function filedownload(e) {
-            var filename = $(e).parent().siblings().filter("#filename").text();
+        function downloadfile(e) {
+            var filename = $(e).parent().parent().siblings().filter("#filename").text();
             console.log("download file: " + filename);
             $("#status").text("开始下载" + filename);
             trig_toast("开始下载" + filename);
@@ -97,7 +97,7 @@
 
         // 删除云端列表文件
         function deletefile(e) {
-            var filename = $(e).parent().siblings().filter("#filename").text();
+            var filename = $(e).parent().parent().siblings().filter("#filename").text();
             console.log("delete file: " + filename);
             $("#status").text("删除文件" + filename);
             trig_toast("删除文件" + filename);
@@ -175,7 +175,18 @@
             </table>
         </div>
         <!-- Test Area Begin -->
-        <div class="invisible" id="testarea">
+        <hr>
+        <div class="visible" id="testarea">
+            <!-- 展示系统信息 -->
+            <div>System: {{ systeminfo["uname"].sysname }}</div>
+            <div>Nodename: {{ systeminfo["uname"].nodename }}</div>
+            <div>Release: {{ systeminfo["uname"].release }}</div>
+            <div>Version: {{ systeminfo["uname"].version }}</div>
+            <div>Machine: {{ systeminfo["uname"].machine }}</div>
+            <div>Workdir: {{ systeminfo["workdir"] }}</div>
+            <div>WorkdirUsage: {{ systeminfo["workdir_usage"] }}</div>
+            <div>Filecachedir: {{ systeminfo["filecachedir"] }}</div>
+            <div>FilecachedirUsage: {{ systeminfo["filecachedir_usage"] }}</div>
         </div>
         <!-- Test Area End -->
     </div>

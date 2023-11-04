@@ -8,7 +8,7 @@ import os
 import json
 from time import time
 # 从项目顶层导入包，不能使用相对路径（...tools.tools），需使用绝对路径，或直接导入对应名称
-from core.tools import struct_time, get_readable_file_size
+from core.tools import struct_time, get_readable_file_size, get_systeminfo
 from . import main
 from .forms import FileuploadForm
 
@@ -20,7 +20,9 @@ FILECACHEDIR = current_app.config.get("FILECACHEDIR")
 @main.route("/", methods=["GET"])
 def index():
     fileupform = FileuploadForm()
-    return render_template("index.html", fileuploadform=fileupform)
+    systeminfo = get_systeminfo()
+    print(systeminfo)
+    return render_template("index.html", fileuploadform=fileupform, systeminfo=systeminfo)
 
 
 # 云端后台下载，Pythonanywhere免费账号只用来下载github文件
